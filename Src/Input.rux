@@ -25,12 +25,12 @@ import Linux::{
     Stdin
 };
 
-/*@[Target("MacOS")]
+@[Target("MacOS")]
 import MacOS::{
-    Func1,
-    Func2,
-    Func3
-};*/
+    GetStdHandle,
+    StdHandle,
+    ReadFile
+};
 
 @[Target("Windows")]
 import Windows::{
@@ -118,7 +118,25 @@ module Std::Io {
 
     @[Target("MacOS")]
     func ReadLine() -> String {
-        return String { data: null, length: 0 };
+        var buf: char8[MaxInputLength];
+        var bytesRead: uint32 = 0;
+        let handle = GetStdHandle(StdHandle::Input);
+        if ReadFile(handle, buf.data, MaxInputLength as uint32, &bytesRead, null) == 0 {
+            return String { data: null, length: 0 };
+        }
+        var len = bytesRead as uint;
+        if len > 0 && buf[len - 1] == c8'\n' {
+            len--;
+        }
+        if len > 0 && buf[len - 1] == c8'\r' {
+            len--;
+        }
+        if len == 0 {
+            return String { data: null, length: 0 };
+        }
+        let ptr = Alloc(len) as *char8;
+        Copy(ptr, buf.data, len);
+        return String { data: ptr, length: len };
     }
 
     @[Target("Windows")]
