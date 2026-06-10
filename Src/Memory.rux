@@ -40,7 +40,8 @@ import Linux::{
 @[Target("MacOS")]
 import MacOS::{
     GetProcessHeap,
-    HeapAlloc
+    HeapAlloc,
+    Munmap
 };
 
 @[Target("Windows")]
@@ -247,9 +248,9 @@ module Std::Memory {
         if ptr == null {
             return;
         }
-        // The macOS Mach-O linker provides no munmap thunk yet, so the pages
-        // backing this block are not reclaimed. The size header written by
-        // Alloc is left in place for a future munmap-based implementation.
+
+        let header = (ptr as *uint) - 1;
+        Munmap(header as *opaque, *header + HeaderSize);
     }
 
     @[Target("Windows")]
