@@ -54,6 +54,11 @@ func SleepMs(ms: uint32) {
     Nanosleep(&req, &rem);
 }
 
+@[Target("MacOS")]
+func SleepMs(ms: uint32) {
+    // Not implemented
+}
+
 func SleepSeconds(seconds: uint32) {
     SleepMs(seconds * 1000u32);
 }
