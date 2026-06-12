@@ -8,7 +8,7 @@ module Std {
     func ToString(value: char8) -> String {
         var buf: char8[1];
         buf[0] = value;
-        return String::From(buf.data, 1);
+        return String::From(buf.data, 1u);
     }
 
     extend char8 : Display {

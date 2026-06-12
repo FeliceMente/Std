@@ -25,7 +25,6 @@ module Std {
     }
 
     extend String {
-
         func New() -> String {
             return String { data: null, length: 0 };
         }
@@ -162,7 +161,7 @@ module Std {
 
             if first == self.length {
                 return String {
-                    data: Alloc(0) as *char8,
+                    data: Alloc(0u) as *char8,
                     length: 0
                 };
             }
