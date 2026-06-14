@@ -151,7 +151,7 @@ module Std::Io {
             Fatal("string is too long to print");
         }
         var wideBuf: char16[MaxLength];
-        let wideLen = MultiByteToWideChar(CodePage::Utf8 as uint32, 0, string, length as int32, wideBuf.data, wideBuf.length as int32);
+        let wideLen = MultiByteToWideChar(CodePage::Utf8 as uint32, 0u32, string, length as int32, wideBuf.data, wideBuf.length as int32);
         Print(wideBuf.data, wideLen as uint);
     }
 

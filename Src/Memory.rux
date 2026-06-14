@@ -100,7 +100,7 @@ module Std::Memory {
     @[Target("MacOS")]
     func Alloc(size: uint) -> *opaque {
         let total = size + HeaderSize;
-        let mapping = HeapAlloc(GetProcessHeap(), 0, total);
+        let mapping = HeapAlloc(GetProcessHeap(), 0u32, total);
         if mapping == null || (mapping as int64) == -1i64 {
             return null;
         }
@@ -112,7 +112,7 @@ module Std::Memory {
 
     @[Target("Windows")]
     func Alloc(size: uint) -> *opaque {
-        return HeapAlloc(GetProcessHeap(), 0, size);
+        return HeapAlloc(GetProcessHeap(), 0u32, size);
     }
 
     @[Target("BSD")]
@@ -209,7 +209,7 @@ module Std::Memory {
 
     @[Target("Windows")]
     func Realloc(ptr: *opaque, size: uint) -> *opaque {
-        return HeapReAlloc(GetProcessHeap(), 0, ptr, size);
+        return HeapReAlloc(GetProcessHeap(), 0u32, ptr, size);
     }
 
     @[Target("BSD")]
@@ -254,7 +254,7 @@ module Std::Memory {
 
     @[Target("Windows")]
     func Free(ptr: *opaque) {
-        HeapFree(GetProcessHeap(), 0, ptr);
+        HeapFree(GetProcessHeap(), 0u32, ptr);
     }
 
     @[Target("BSD")]
@@ -304,22 +304,22 @@ module Std::Memory {
 
     @[Target("BSD")]
     func Zero(ptr: *opaque, size: uint) {
-        Set(ptr, size, 0);
+        Set(ptr, size, 0i32);
     }
 
     @[Target("Illumos")]
     func Zero(ptr: *opaque, size: uint) {
-        Set(ptr, size, 0);
+        Set(ptr, size, 0i32);
     }
 
     @[Target("Linux")]
     func Zero(ptr: *opaque, size: uint) {
-        Set(ptr, size, 0);
+        Set(ptr, size, 0i32);
     }
 
     @[Target("MacOS")]
     func Zero(ptr: *opaque, size: uint) {
-        Set(ptr, size, 0);
+        Set(ptr, size, 0i32);
     }
 
     @[Target("Windows")]
