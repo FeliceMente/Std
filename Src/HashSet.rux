@@ -1,0 +1,188 @@
+/*
+    Rux standard library
+    Copyright 2026 Rux Contributors
+    Licensed under the MIT License
+*/
+
+import Std::Memory::{ Alloc, Free, Zero };
+
+module Std::HashSet {
+    const EntryBytes: uint = 16u;
+
+    struct HashSet {
+        data: *uint8;
+        cap: uint;
+        count: uint;
+    }
+
+    func entryAddr(data: *uint8, index: uint, offset: uint) -> uint {
+        return data as uint + index * EntryBytes + offset;
+    }
+
+    func readKey(data: *uint8, index: uint) -> int {
+        return *(entryAddr(data, index, 0u) as *int);
+    }
+
+    func writeKey(data: *uint8, index: uint, key: int) {
+        *(entryAddr(data, index, 0u) as *int) = key;
+    }
+
+    func isOccupied(data: *uint8, index: uint) -> bool {
+        return *(entryAddr(data, index, 8u) as *uint8) != 0u8;
+    }
+
+    func setOccupied(data: *uint8, index: uint, occ: bool) {
+        *(entryAddr(data, index, 8u) as *uint8) = occ as uint8;
+    }
+
+    func hashKey(key: int) -> uint {
+        var hash = key as uint;
+        hash = (hash ^ (hash >> 30)) * 0xBF58476D1CE4E5B9;
+        hash = (hash ^ (hash >> 27)) * 0x94D049BB133111EB;
+        hash = hash ^ (hash >> 31);
+        return hash;
+    }
+
+    func findSlot(data: *uint8, cap: uint, key: int) -> uint {
+        let mask = cap - 1u;
+        let hash = hashKey(key);
+        var idx = hash & mask;
+        while isOccupied(data, idx) && readKey(data, idx) != key {
+            idx = (idx + 1u) & mask;
+        }
+        return idx;
+    }
+
+    func resize(setPtr: *HashSet, newCap: uint) {
+        let oldData = setPtr.data;
+        let oldCap = setPtr.cap;
+        let newData = Alloc(newCap * EntryBytes) as *uint8;
+        if newData == null { return; }
+        Zero(newData as *opaque, newCap * EntryBytes);
+        setPtr.data = newData;
+        setPtr.cap = newCap;
+        setPtr.count = 0u;
+        var idx: uint = 0u;
+        while idx < oldCap {
+            if isOccupied(oldData, idx) {
+                let key = readKey(oldData, idx);
+                insertNoResize(newData, newCap, key);
+                setPtr.count += 1u;
+            }
+            idx += 1u;
+        }
+        Free(oldData as *opaque);
+    }
+
+    func insertNoResize(data: *uint8, cap: uint, key: int) {
+        let idx = findSlot(data, cap, key);
+        setOccupied(data, idx, true);
+        writeKey(data, idx, key);
+    }
+
+    func Init(setPtr: *HashSet) {
+        let initCap = 16u;
+        let newData = Alloc(initCap * EntryBytes) as *uint8;
+        if newData != null {
+            Zero(newData as *opaque, initCap * EntryBytes);
+        }
+        setPtr.data = newData;
+        setPtr.cap = initCap;
+        setPtr.count = 0u;
+    }
+
+    func InitWithCap(setPtr: *HashSet, capacity: uint) {
+        let initCap = capacity < 16u ? 16u : capacity;
+        let newData = Alloc(initCap * EntryBytes) as *uint8;
+        if newData != null {
+            Zero(newData as *opaque, initCap * EntryBytes);
+        }
+        setPtr.data = newData;
+        setPtr.cap = initCap;
+        setPtr.count = 0u;
+    }
+
+    extend HashSet {
+        func Insert(self, key: int) {
+            if self.data == null { return; }
+            if (self.count + 1u) * 8u > self.cap {
+                resize(self, self.cap * 2u);
+            }
+            let idx = findSlot(self.data, self.cap, key);
+            if !isOccupied(self.data, idx) {
+                setOccupied(self.data, idx, true);
+                self.count += 1u;
+            }
+            writeKey(self.data, idx, key);
+        }
+
+        func Contains(self, key: int) -> bool {
+            if self.data == null { return false; }
+            let idx = findSlot(self.data, self.cap, key);
+            return isOccupied(self.data, idx) && readKey(self.data, idx) == key;
+        }
+
+        func Remove(self, key: int) -> bool {
+            if self.data == null { return false; }
+            let idx = findSlot(self.data, self.cap, key);
+            if !isOccupied(self.data, idx) || readKey(self.data, idx) != key {
+                return false;
+            }
+            setOccupied(self.data, idx, false);
+            self.count -= 1u;
+            var next = (idx + 1u) & (self.cap - 1u);
+            while isOccupied(self.data, next) {
+                let rehashKey = readKey(self.data, next);
+                setOccupied(self.data, next, false);
+                self.count -= 1u;
+                insertNoResize(self.data, self.cap, rehashKey);
+                self.count += 1u;
+                next = (next + 1u) & (self.cap - 1u);
+            }
+            return true;
+        }
+
+        func Clear(self) {
+            if self.data != null {
+                Zero(self.data as *opaque, self.cap * EntryBytes);
+            }
+            self.count = 0u;
+        }
+
+        func Free(self) {
+            if self.data != null {
+                Free(self.data as *opaque);
+                self.data = null;
+            }
+            self.count = 0u;
+            self.cap = 0u;
+        }
+
+        func Len(self) -> uint {
+            return self.count;
+        }
+
+        func Cap(self) -> uint {
+            return self.cap;
+        }
+
+        func Keys(self) -> *int {
+            if self.count == 0u { return null; }
+            let keys = Alloc(self.count * 8u + 8u) as *int;
+            if keys == null { return null; }
+            var pos: uint = 0u;
+            var i: uint = 0u;
+            while i < self.cap {
+                if isOccupied(self.data, i) {
+                    let keyAddr = entryAddr(self.data, i, 0u) as *int;
+                    let keyVal = *keyAddr;
+                    let keyPtr = keys as *uint8 + pos * 8u;
+                    *(keyPtr as *int) = keyVal;
+                    pos += 1u;
+                }
+                i += 1u;
+            }
+            return keys;
+        }
+    }
+}

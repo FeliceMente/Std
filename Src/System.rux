@@ -7,8 +7,11 @@
 /*[Target("BSD")]
 import BSD::SomeFunction;*/
 
-/*[Target("Illumos")]
-import Illumos::SomeFunction;*/
+@[Target("Illumos")]
+import Illumos::{
+    Syscall1,
+    SYS_EXIT
+};
 
 @[Target("Linux")]
 import Linux::{
@@ -16,8 +19,8 @@ import Linux::{
     SYS_EXIT
 };
 
-/*[Target("macOS")]
-import MacOS::SomeFunction;*/
+@[Target("MacOS")]
+import MacOS::ExitProcess;
 
 @[Target("Windows")]
 import Windows::ExitProcess;
@@ -30,7 +33,7 @@ module Std {
 
     @[Target("Illumos")]
     func Exit(code: uint32) {
-        // platform specific implementation for Illumos
+        Syscall1(SYS_EXIT, code as uint64);
     }
 
     @[Target("Linux")]
@@ -40,7 +43,7 @@ module Std {
 
     @[Target("MacOS")]
     func Exit(code: uint32) {
-        // platform specific implementation for macOS
+        ExitProcess(code);
     }
 
     @[Target("Windows")]
