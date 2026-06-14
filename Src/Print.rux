@@ -4,10 +4,11 @@
     Licensed under the MIT License
 */
 
-@[Target("BSD")]
+/*@[Target("BSD")]
 import BSD::{
-    Stdout,
-    Write
+    Func1,
+    Func2,
+    Func3
 };
 
 @[Target("Illumos")]
@@ -119,8 +120,7 @@ module Std::Io {
 
     @[Target("BSD")]
     func Print(string: *const char8, length: uint) {
-        if length == 0 { return; }
-        Write(Stdout, string, length);
+        // platform specific implementation for BSD
     }
 
     @[Target("Illumos")]
@@ -157,13 +157,7 @@ module Std::Io {
 
     @[Target("BSD")]
     func Print(string: *const char16, length: uint) {
-        var byte: char8[1];
-        var i: uint = 0;
-        while i < length {
-            byte[0] = (*(string + i)) as char8;
-            Print(byte.data, 1u);
-            i++;
-        }
+        // platform specific implementation for BSD
     }
 
     @[Target("Illumos")]
@@ -225,8 +219,7 @@ module Std::Io {
 
     @[Target("BSD")]
     func PrintLine() {
-        let newline = c8"\n";
-        Print(newline.data, newline.length);
+        // platform specific implementation for BSD
     }
 
     @[Target("Illumos")]

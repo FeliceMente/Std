@@ -135,6 +135,11 @@ func SleepMs(ms: uint32) {
     Nanosleep(&req, &rem);
 }
 
+@[Target("MacOS")]
+func SleepMs(ms: uint32) {
+    // Not implemented
+}
+
 func SleepSeconds(seconds: uint32) {
     SleepMs(seconds * 1000u32);
 }
@@ -310,41 +315,6 @@ func UtcTime() -> SystemTime {
     st.dayOfWeek = ((daysSinceEpoch + 4i64) % 7i64) as uint16;
 
     return st;
-}
-
-@[Target("BSD")]
-func EpochToSystemTime(sec: int64, nsec: int64) -> SystemTime {
-    let days = sec / 86400i64;
-    let timeOfDay = sec % 86400i64;
-
-    let h = (timeOfDay / 3600i64) as uint16;
-    let m = ((timeOfDay % 3600i64) / 60i64) as uint16;
-    let s = (timeOfDay % 60i64) as uint16;
-    let ms = (nsec / 1000000i64) as uint16;
-
-    let z = days + 719468i64;
-    let era = (z >= 0i64 ? z : z - 146096i64) / 146097i64;
-    let doe = z - era * 146097i64;
-    let yoe = (doe - doe / 1460i64 + doe / 36524i64 - doe / 146096i64) / 365i64;
-    let yearCalc = yoe + era * 400i64;
-    let doy = doe - (365i64 * yoe + yoe / 4i64 - yoe / 100i64);
-    let mp = (5i64 * doy + 2i64) / 153i64;
-    let day = (doy - (153i64 * mp + 2i64) / 5i64 + 1i64) as uint16;
-    let monthCalc = mp + (mp < 10i64 ? 3i64 : -9i64);
-    let month = monthCalc as uint16;
-    let year = (yearCalc + (monthCalc <= 2i64 ? 1i64 : 0i64)) as uint16;
-    let dayOfWeek = ((days + 4i64) % 7i64) as uint16;
-
-    return SystemTime {
-        year: year,
-        month: month,
-        dayOfWeek: dayOfWeek,
-        day: day,
-        hour: h,
-        minute: m,
-        second: s,
-        milliseconds: ms
-    };
 }
 
 }
