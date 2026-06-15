@@ -5,30 +5,132 @@
 */
 
 module Std::Math {
-    const Pi: float64 = 3.14159265358979323846;
-    const E: float64 = 2.71828182845904523536;
+    func Pi() -> float64 { return 3.14159265358979323846; }
+    func E() -> float64 { return 2.71828182845904523536; }
+    func Tau() -> float64 { return 6.28318530717958647692; }
+    func PiOver2() -> float64 { return 1.57079632679489661923; }
+    func PiOver4() -> float64 { return 0.78539816339744830962; }
+    func Sqrt2() -> float64 { return 1.41421356237309504880; }
+    func Sqrt3() -> float64 { return 1.73205080756887729352; }
+    func Ln2() -> float64 { return 0.69314718055994530942; }
+    func Ln10() -> float64 { return 2.30258509299404568402; }
+    func Log2E() -> float64 { return 1.44269504088896340736; }
+    func Log10E() -> float64 { return 0.43429448190325182765; }
+    func Phi() -> float64 { return 1.61803398874989484820; }
+    func InvPi() -> float64 { return 0.31830988618379067154; }
+    func InvSqrt2() -> float64 { return 0.70710678118654752440; }
+    func Sqrt2Pi() -> float64 { return 2.50662827463100050242; }
+
+    func Pi32() -> float32 { return 3.14159265358979323846f32; }
+    func E32() -> float32 { return 2.71828182845904523536f32; }
+    func Tau32() -> float32 { return 6.28318530717958647692f32; }
+    func PiOver2_32() -> float32 { return 1.57079632679489661923f32; }
+    func PiOver4_32() -> float32 { return 0.78539816339744830962f32; }
+    func Sqrt2_32() -> float32 { return 1.41421356237309504880f32; }
+    func Sqrt3_32() -> float32 { return 1.73205080756887729352f32; }
+    func Ln2_32() -> float32 { return 0.69314718055994530942f32; }
+    func Ln10_32() -> float32 { return 2.30258509299404568402f32; }
+    func Phi_32() -> float32 { return 1.61803398874989484820f32; }
 
     func Add(x: int, y: int) -> int
     {
         return x + y;
     }
 
+    func sin64(x: float64) -> float64
+    {
+        var r = x;
+        var neg = false;
+        if r < 0.0 {
+            neg = true;
+            r = -r;
+        }
+
+        if r >= Tau() {
+            let n = (r / Tau()) as int64;
+            r = r - (n as float64) * Tau();
+        }
+
+        if r >= Pi() {
+            neg = !neg;
+            r = r - Pi();
+        }
+        if r > PiOver2() {
+            r = Pi() - r;
+        }
+
+        var useCos = false;
+        if r > PiOver4() {
+            useCos = true;
+            r = PiOver2() - r;
+        }
+
+        let r2 = r * r;
+
+        // sin(x) ≈ x + x³ * (s1 + x² * (s2 + x² * (s3 + x² * (s4 + x² * s5))))
+        // s1 = -1/6, s2 = 1/120, s3 = -1/5040, s4 = 1/362880, s5 = -1/39916800
+        let s1 = -1.66666666666666666667e-01;
+        let s2 =  8.33333333333333333333e-03;
+        let s3 = -1.98412698412698412698e-04;
+        let s4 =  2.75573192239858906526e-06;
+        let s5 = -2.50521083854417187751e-08;
+
+        // cos(x) ≈ 1 + x² * (c1 + x² * (c2 + x² * (c3 + x² * (c4 + x² * c5))))
+        // c1 = -1/2, c2 = 1/24, c3 = -1/720, c4 = 1/40320, c5 = -1/3628800
+        let c1 = -5.0e-01;
+        let c2 =  4.16666666666666666667e-02;
+        let c3 = -1.38888888888888888889e-03;
+        let c4 =  2.48015873015873015873e-05;
+        let c5 = -2.75573192239858906526e-07;
+
+        var result: float64;
+        if useCos == false {
+            result = r + r * r2 * (s1 + r2 * (s2 + r2 * (s3 + r2 * (s4 + r2 * s5))));
+        } else {
+            result = 1.0 + r2 * (c1 + r2 * (c2 + r2 * (c3 + r2 * (c4 + r2 * c5))));
+        }
+
+        if neg {
+            result = -result;
+        }
+        return result;
+    }
+
+    func cos64(x: float64) -> float64
+    {
+        return sin64(PiOver2() - x);
+    }
+
     func Sin(x: float64) -> float64
     {
-        // Placeholder implementation
-        return 0.0;
+        return sin64(x);
     }
 
     func Cos(x: float64) -> float64
     {
-        // Placeholder implementation
-        return 0.0;
+        return cos64(x);
     }
 
     func Tan(x: float64) -> float64
     {
-        // Placeholder implementation
-        return 0.0;
+        return sin64(x) / cos64(x);
+    }
+
+    func Sin32(x: float32) -> float32
+    {
+        return sin64(x as float64) as float32;
+    }
+
+    func Cos32(x: float32) -> float32
+    {
+        return cos64(x as float64) as float32;
+    }
+
+    func Tan32(x: float32) -> float32
+    {
+        let s = sin64(x as float64);
+        let c = cos64(x as float64);
+        return (s / c) as float32;
     }
 
     func Sqrt(x: float64) -> float64
@@ -64,21 +166,6 @@ module Std::Math {
     {
         // Placeholder implementation
         return 0.0;
-    }
-
-    func Sin(x: float32) -> float32
-    {
-        return 0.0f32; // Placeholder implementation
-    }
-
-    func Cos(x: float32) -> float32
-    {
-        return 0.0f32; // Placeholder implementation
-    }
-
-    func Tan(x: float32) -> float32
-    {
-        return 0.0f32; // Placeholder implementation
     }
 
     func Sqrt(x: float32) -> float32
