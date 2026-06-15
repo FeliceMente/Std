@@ -131,8 +131,15 @@ module Std::Math {
 
     func Sqrt(x: float64) -> float64
     {
-        // Placeholder implementation
-        return 0.0;
+        if x < 0.0 { return 0.0; }
+        if x == 0.0 { return 0.0; }
+        var guess = x;
+        var i: uint = 0u;
+        while i < 10u {
+            guess = (guess + x / guess) * 0.5;
+            i += 1u;
+        }
+        return guess;
     }
 
     func Pow(base: float64, exponent: float64) -> float64
@@ -141,9 +148,63 @@ module Std::Math {
         return 0.0;
     }
 
-    func Abs(x: float64) -> float64
+    func Abs64(x: float64) -> float64
     {
         return x < 0.0 ? -x : x;
+    }
+
+    func Abs(x: int) -> int
+    {
+        if x < 0 { return -x; }
+        return x;
+    }
+
+    func Min(x: int, y: int) -> int
+    {
+        if x < y { return x; }
+        return y;
+    }
+
+    func Max(x: int, y: int) -> int
+    {
+        if x > y { return x; }
+        return y;
+    }
+
+    func MinU(x: uint, y: uint) -> uint
+    {
+        if x < y { return x; }
+        return y;
+    }
+
+    func MaxU(x: uint, y: uint) -> uint
+    {
+        if x > y { return x; }
+        return y;
+    }
+
+    func Min64(x: float64, y: float64) -> float64
+    {
+        if x < y { return x; }
+        return y;
+    }
+
+    func Max64(x: float64, y: float64) -> float64
+    {
+        if x > y { return x; }
+        return y;
+    }
+
+    func Min32(x: float32, y: float32) -> float32
+    {
+        if x < y { return x; }
+        return y;
+    }
+
+    func Max32(x: float32, y: float32) -> float32
+    {
+        if x > y { return x; }
+        return y;
     }
 
     func Floor(x: float64) -> float64
@@ -164,9 +225,9 @@ module Std::Math {
         return 0.0;
     }
 
-    func Sqrt(x: float32) -> float32
+    func Sqrt32(x: float32) -> float32
     {
-        return 0.0f32; // Placeholder implementation
+        return Sqrt(x as float64) as float32;
     }
 
     func Pow(base: float32, exponent: float32) -> float32
@@ -174,9 +235,9 @@ module Std::Math {
         return 0.0f32; // Placeholder implementation
     }
 
-    func Abs(x: float32) -> float32
+    func Abs32(x: float32) -> float32
     {
-        return 0.0f32; // Placeholder implementation
+        return x < 0.0f32 ? -x : x;
     }
 
     func Floor(x: float32) -> float32
